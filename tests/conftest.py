@@ -5,6 +5,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def isolated_home(tmp_path, monkeypatch):
+    monkeypatch.delenv("HTOPRC", raising=False)
     home = tmp_path / "home with spaces"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))

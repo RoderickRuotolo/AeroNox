@@ -36,7 +36,8 @@ class TerminatorTests(unittest.TestCase):
         self.home = Path(temporary.name) / "home with spaces"
         self.home.mkdir(mode=0o700)
         environment = patch.dict(os.environ, {
-            "HOME": str(self.home), "XDG_CONFIG_HOME": str(self.home / "config with spaces"),
+            "HTOPRC": "", "HOME": str(self.home),
+            "XDG_CONFIG_HOME": str(self.home / "config with spaces"),
             "XDG_STATE_HOME": str(self.home / "state"), "XDG_DATA_HOME": str(self.home / "data"),
         })
         environment.start()
@@ -357,7 +358,7 @@ class TerminatorTests(unittest.TestCase):
             status, output, _ = self.capture(["install"])
         self.assertEqual(status, 0)
         self.assertIn("terminator: skipped", output)
-        self.assertIn("htop: pending", output)
+        self.assertIn("htop: skipped", output)
         self.assertEqual(self.tree(), before)
 
     def test_sandboxed_edition_is_skipped(self):

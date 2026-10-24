@@ -22,7 +22,7 @@ class SafetyTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.home = Path(self.temporary.name) / "home with spaces"
         self.home.mkdir(mode=0o700)
-        env = {"HOME": str(self.home), "XDG_CONFIG_HOME": str(self.home / "config"),
+        env = {"HTOPRC": "", "HOME": str(self.home), "XDG_CONFIG_HOME": str(self.home / "config"),
                "XDG_STATE_HOME": str(self.home / "state"),
                "XDG_DATA_HOME": str(self.home / "data")}
         environment = patch.dict(os.environ, env)

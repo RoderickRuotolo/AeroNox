@@ -29,6 +29,8 @@ jobs:
           cd /tmp
           /tmp/aeronox-wheel/bin/aeronox --help
           /tmp/aeronox-wheel/bin/aeronox open terminator --help
+          /tmp/aeronox-wheel/bin/aeronox open htop --help
+          /tmp/aeronox-wheel/bin/aeronox open vim --help
           /tmp/aeronox-wheel/bin/aeronox doctor
           /tmp/aeronox-wheel/bin/aeronox palette show aviation-red
           /tmp/aeronox-wheel/bin/aeronox palette show nvis-green-a

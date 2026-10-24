@@ -3,8 +3,8 @@
 ## Terminator (stage 3)
 
 The native Terminator executable must already be on PATH. AeroNox never installs
-it. Missing applications are skipped with an actionable message; other components
-remain pending in this release. Recognized Snap/Flatpak executable paths are
+it. Missing applications are skipped with an actionable message; VS Code
+remains pending in this release. Recognized Snap/Flatpak executable paths are
 skipped because their configuration locations cannot be assumed. Detection uses
 PATH without executing a version probe. Arbitrary launcher scripts and all
 sandboxed packaging variants cannot be reliably classified from PATH alone.
@@ -102,4 +102,104 @@ detection and mocked process launches. They verify parsing, exact preservation,
 backups, rollback, per-profile ownership, idempotence and argv handling. They do
 not open a real GUI or certify visual rendering across Terminator versions. Actual
 font/color rendering and interaction with an existing desktop session still need
-manual validation. htop, Vim and VS Code integrations remain future stages.
+manual validation. VS Code integration remains the next stage.
+
+## htop (stage 4)
+
+```bash
+aeronox install --components htop --dry-run
+aeronox install --components htop
+aeronox open htop --palette aviation-red
+aeronox open htop --palette nvis-green-a --dry-run
+aeronox open htop --palette aviation-red -- --filter 'text with spaces'
+```
+
+The native htop executable must be on PATH; recognized sandboxed editions are
+skipped. Source precedence is an explicit nonempty HTOPRC, the XDG htoprc, then
+legacy `~/.htoprc`. Sources must be absolute, inside HOME and pass the filesystem
+safety checks. Missing sources produce a minimal config with `color_scheme=1`;
+system-wide preferences are not imported. Legacy files are copied without moving,
+rewriting or deleting them. Unset HTOPRC before installation if it points at a
+managed copy rather than a personal source.
+
+Generated files live at `$XDG_DATA_HOME/aeronox/htop/<palette>/htoprc`. Original
+bytes, columns, meters, sorting, unknown settings and comments are preserved in
+the copies except the color_scheme value. Duplicate color_scheme settings, NUL
+and CR-only line endings are refused. LF/CRLF are supported. The two copies use
+the same native monochrome setting; they do not contain independent RGB palettes.
+
+The themed launcher uses `-C` and sets HTOPRC only for the child. Newer htop history
+is redirected using a per-palette XDG_STATE_HOME under AeroNox state; the parent's
+environment is unchanged. Dry-run outputs JSON with argv and only the environment
+delta, never the whole process environment. Original mode inherits the normal
+command/environment without overriding HTOPRC. Native config/history semantics
+are described in the [htop manual](https://github.com/htop-dev/htop/blob/main/htop.1.in).
+
+Monochrome relies on the parent terminal's appearance; use a coordinated Terminator
+profile for a red/green environment. htop does not promise element-by-element RGB
+matching. Native PTY smoke tests check Help/Setup/Quit labels for both selected
+copies; actual desktop rendering and readability under both Terminator profiles
+still need manual visual validation.
+
+htop may reformat/rewrite the managed copy when it exits. Hash/mode mismatches are
+reported on subsequent managed launch, installation and removal; edited bytes are
+preserved. There is no automatic reconciliation/adoption command in this stage.
+Do not remove ownership records to suppress a conflict; retain the changed copy
+for review. Normal htop use outside the wrapper is still available. Installation
+snapshots protect previous generated versions; the original personal htoprc is
+never a mutation target. Runtime histories are not pruned or removed automatically.
+
+## Vim (stage 4)
+
+```bash
+aeronox install --components vim --dry-run
+aeronox install --components vim
+aeronox open vim --palette aviation-red -- README.md
+aeronox open vim --palette nvis-green-a --dry-run
+# To pass Vim's own -- for filenames beginning with '-' or '+':
+aeronox open vim --palette aviation-red -- -- '-example.txt'
+```
+
+The native Vim executable must be on PATH. Neovim and other editors are not added
+implicitly; recognized sandboxed packages are skipped. Files are generated under
+`$XDG_DATA_HOME/aeronox/vim/colors/aeronox_red.vim` and `aeronox_green.vim`.
+No `.vimrc`, `.vim` directory or shell startup file is created or modified.
+Each theme includes Normal, Comment, Constant, String, Identifier, Statement,
+PreProc, Type, Special, LineNr, CursorLine, Visual, StatusLine, Search, ErrorMsg,
+WarningMsg, DiffAdd, DiffDelete and Cursor. Semantic RGB values come exclusively
+from the central palette JSON. cterm values are nearest sRGB approximations among
+the stable xterm cube/grayscale indices 16–255; configurable ANSI indices 0–15 are
+avoided. Terminals with fewer colors may not reproduce this fallback accurately.
+
+Error/warning/diff groups include bold, reverse or underline differences, so hue
+is not the only cue. Terminal capability, font support and the user's settings
+still determine appearance. The generated scheme provides GUI/True Color values
+but does not turn termguicolors on automatically. See the official
+[Vim colors guide](https://vimhelp.org/usr_06.txt.html) and
+[terminal documentation](https://vimhelp.org/term.txt.html).
+
+The wrapper prepends the XDG runtime directory through a safely quoted runtimepath
+value and executes `colorscheme aeronox_red` or `aeronox_green` using a separate
+`-c` argument. Spaces, commas, quotes, backslashes and bars are tested with real
+headless Vim; control characters in runtime paths are refused. Arguments after
+`--` pass unchanged. Personal startup settings still load in real launches and
+plugins can override highlights later. Installation never executes Vim or sources
+vimrc. Original mode starts Vim normally without changing runtimepath.
+
+Headless tests use temporary HOME/XDG and `vim -Nu NONE -i NONE -n -es`, exercising
+both palettes in True Color and notermguicolors modes. Tests verify colors_name,
+Normal RGB/cterm attributes and non-color ErrorMsg emphasis. Native executables
+are optional for the smoke tests; missing ones are reported as skips. Core
+resource/ownership tests always run. No test uses personal Vim configurations.
+
+## Combined installation and removal scope
+
+`aeronox install --components terminator,htop,vim` installs available components in
+that order, each with its own backup/transaction. It never installs the applications
+themselves. A later failure reports earlier committed components and backup IDs;
+it is not a single atomic transaction across every application. Re-running an
+unchanged install does not duplicate resources or create more backups.
+
+The htop/Vim internal removal plans delete only intact owned resources; modified
+or unregistered files are preserved. Public uninstall/restore and active-theme
+commands remain reserved for stage 6. Explicit --palette is per launch only.

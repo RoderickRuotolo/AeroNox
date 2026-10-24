@@ -1,0 +1,13 @@
+# Synthetic htop preferences, not a real configuration.
+fields=0 48 17 18 38 39 40 2 46 47 49 1
+sort_key=46
+sort_direction=-1
+left_meters=LeftCPUs Memory Swap
+left_meter_modes=1 1 1
+right_meters=RightCPUs Tasks LoadAverage Uptime
+right_meter_modes=1 2 2 2
+color_scheme=6
+header_margin=0
+screen:Main=PID USER CPU% MEM% Command
+.future_option=keep
+# keep comments and unknown options

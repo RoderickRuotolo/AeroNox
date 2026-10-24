@@ -3,16 +3,16 @@
 *Coordinated low-light themes for Linux developer tools.*
 
 AeroNox is an early-stage, offline Linux theme manager for Terminator, htop,
-Vim and Visual Studio Code. **Roadmap stages 1–3 are implemented: foundation, safety engine and Terminator.**
-The CLI inspects palettes, installs dedicated Terminator profiles with backups,
-and opens new Terminator instances using a selected profile. htop, Vim and VS Code
-integrations and active-theme management are still pending.
+Vim and Visual Studio Code. **Roadmap stages 1–4 are implemented.**
+The CLI inspects palettes and installs isolated resources for Terminator, htop and
+Vim with backups and conflict checks. VS Code integration and active-theme
+management are still pending.
 
 ## Requirements and installation
 
 Python 3.11+ on Linux, with ConfigObj 5.x (installed as a package dependency).
-Terminator must already be installed to use its integration. From a local checkout,
-install in user space:
+Each target application must already be installed to use its integration. From a
+local checkout, install in user space:
 
 ```bash
 pipx install .
@@ -36,10 +36,15 @@ aeronox palette contrast
 aeronox install --dry-run
 aeronox install --dry-run --components terminator,vim
 aeronox install --components terminator
+aeronox install --components htop,vim --dry-run
+aeronox install --components htop,vim
 aeronox install --components terminator --base-profile 'My Profile' --dry-run
 aeronox open terminator
 aeronox open terminator --palette aviation-red
 aeronox open terminator --palette nvis-green-a --dry-run
+aeronox open htop --palette aviation-red
+aeronox open htop --palette nvis-green-a --dry-run
+aeronox open vim --palette nvis-green-a -- README.md
 aeronox backup list
 python scripts/report_contrast.py
 ```
@@ -53,16 +58,26 @@ Unknown commands and arguments fail with a nonzero exit code.
 `install --dry-run` shows target paths and planned byte counts without writing files
 or launching applications. Real installation creates two dedicated profiles, leaves
 the Terminator default and personal sections byte-identical, and snapshots the full
-original config before changes. Missing applications are skipped; htop, Vim and
-VS Code adapters are reported as pending. Recognized Snap/Flatpak Terminator paths
-require manual setup. `backup list` reads private journals without creating state.
+original config before changes. htop uses separate per-palette htoprc copies, and
+Vim uses colorschemes under XDG data without editing `.vimrc`. Missing applications
+are skipped; only the VS Code adapter is pending. Recognized Snap/Flatpak paths
+require manual setup. Component transactions are independent: a later failure
+reports earlier committed components and backup IDs instead of hiding them. `backup list` reads private journals without creating state.
 
-`open terminator --palette ...` verifies the installed profiles and launches with a
+`open <application> --palette ...` verifies installed resources and launches with a
 list of arguments, without a shell. It affects that new instance only and does not
 persist an active theme. Arguments after `--` pass through individually. Without
-an override, the initial `original` mode starts Terminator normally. No aliases or
+an override, the initial `original` mode starts the application normally. No aliases or
 shell configuration changes are made. See [application notes](docs/apps.md) for
 base-profile selection, cursor/version limits and existing-window behavior.
+
+htop uses native monochrome (`-C`) and an isolated `HTOPRC`; exact RGB matching is
+not promised. Run it inside a themed Terminator to inherit that terminal's colors.
+Its history is redirected to a per-palette XDG state root. If htop rewrites the
+managed htoprc, later use/install/removal reports a conflict and preserves it;
+automatic reconciliation is not implemented yet. Vim includes RGB and approximate
+xterm-256 highlights, including bold/reverse/underline cues. True Color depends on
+the user's terminal and Vim settings; the wrapper does not force it on.
 
 ## Palette preview
 
@@ -99,11 +114,13 @@ hardlinks, special files, unsupported metadata and external XDG roots are refuse
 See [safety and recovery](docs/safety-and-restore.md) for limits and recovery steps,
 and [architecture](docs/architecture.md) for module responsibilities.
 
-`apply`, `current`, `restore`, public `uninstall` and launchers for other apps remain
-future commands. The Terminator adapter has a tested internal section-removal plan.
+`apply`, `current`, `restore`, public `uninstall` and the VS Code launcher remain
+future commands. The three adapters have tested internal removal plans: Terminator
+removes owned sections, while htop/Vim remove only intact generated files.
 The safety engine initially records mode `original`; there is no active-theme
 restore through the CLI yet. Manifest schema 1 is read for compatibility; the first
-actual mutation snapshots it and writes schema 2 with per-profile ownership. An interrupted transaction may require manual
+actual mutation snapshots it and writes schema 2 with ownership records. An
+interrupted transaction may require manual
 recovery from its private journal; automatic crash recovery is not implemented.
 The Terminator default profile, shell startup files, `.vimrc` and VS Code Default
 will remain protected. VS Code integration in the MVP will be assisted/manual;
@@ -135,8 +152,14 @@ They cover conflicts, permissions, symlinks, locks and injected failures.
 Terminator integration tests run with
 `python -m unittest discover -s tests -p test_terminator.py -v`.
 They cover lossless parsing, native profile generation, shared-file ownership and
-mocked launches without opening a GUI. Real visual validation and the full MVP E2E
-scenarios remain pending; the full MVP acceptance criteria are not yet satisfied.
+mocked launches without opening a GUI. htop/Vim tests are available through
+`python -m unittest discover -s tests -p test_htop.py -v` and
+`python -m unittest discover -s tests -p test_vim.py -v`.
+When native executables are available, these render htop controls in a temporary
+PTY and load both Vim themes headlessly with and without True Color. Missing
+native binaries cause those particular smoke tests to skip. Real desktop visual
+validation and full MVP E2E scenarios remain pending; the full MVP acceptance
+criteria are not yet satisfied.
 
 ## Instruções rápidas (PT-BR)
 
@@ -145,7 +168,12 @@ com `aeronox install --components terminator --dry-run`; a instalação real usa
 mesmo comando sem `--dry-run`, cria backups e preserva o `default`. Abra uma nova
 instância com `aeronox open terminator --palette aviation-red`. Isso não altera
 janelas existentes nem persiste um tema ativo. Não foram usadas configurações
-reais nos testes. htop, Vim, VS Code e restauração do tema continuam pendentes.
+reais nos testes. htop e Vim também estão disponíveis: instale com
+`aeronox install --components htop,vim --dry-run` e depois sem `--dry-run`.
+Abra com `aeronox open htop --palette aviation-red` ou
+`aeronox open vim --palette nvis-green-a -- README.md`. O htop usa monocromia e
+pode regravar a cópia, causando um conflito conservador. VS Code e restauração
+do tema continuam pendentes.
 
 ## License
 

@@ -9,11 +9,12 @@ import shutil
 from aeronox import __version__
 from aeronox.catalog import PaletteCatalog
 from aeronox.commands import (
+    APPLICATIONS,
     COMPONENTS,
     backup_list,
     component_names,
     install_components,
-    open_terminator,
+    open_application,
 )
 from aeronox.contrast import contrast_ratio
 from aeronox.models import PALETTE_IDS, PaletteError
@@ -22,7 +23,9 @@ from aeronox.storage import SafetyError
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="AeroNox low-light themes (Terminator preview)")
+    parser = argparse.ArgumentParser(
+        description="AeroNox low-light themes (incremental Linux preview)"
+    )
     parser.add_argument("--version", action="version", version=f"aeronox {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="Report availability without reading application configs")
@@ -33,12 +36,15 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument("--base-profile", default="default",
                          help="Existing Terminator profile to clone (default: default)")
     opener = commands.add_parser("open", help="Launch a supported application without a shell")
-    terminal = opener.add_subparsers(dest="application", required=True).add_parser("terminator")
-    terminal.add_argument("--palette", choices=("original", *PALETTE_IDS),
-                          help="Override active mode for this launch only")
-    terminal.add_argument("--dry-run", action="store_true", help="Show argv without launching")
-    terminal.add_argument("app_args", nargs=argparse.REMAINDER,
-                          help="Arguments to Terminator after --")
+    applications = opener.add_subparsers(dest="application", required=True)
+    for application in APPLICATIONS:
+        child = applications.add_parser(application)
+        child.add_argument("--palette", choices=("original", *PALETTE_IDS),
+                           help="Override active mode for this launch only")
+        child.add_argument("--dry-run", action="store_true",
+                           help="Show launch plan without running")
+        child.add_argument("app_args", nargs=argparse.REMAINDER,
+                           help=f"Arguments to {application} after --")
     backups = commands.add_parser("backup", help="Inspect local transaction backups")
     backups.add_subparsers(dest="backup_action", required=True).add_parser("list")
     palette = commands.add_parser("palette", help="Inspect validated bundled palettes")
@@ -64,14 +70,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"True Color: {color_status}")
             print("XDG AeroNox locations: resolved (paths hidden)")
             print("Palettes: valid")
-            print("Terminator: profile adapter available; app versions not probed")
-            print("htop, Vim and VS Code integrations: not implemented; no configs inspected")
+            print("Terminator, htop and Vim adapters available; app versions not probed")
+            print("VS Code integration: not implemented; no configs inspected")
         elif args.command == "install":
             print(install_components(args.components, dry_run=args.dry_run,
                                      base_profile=args.base_profile))
         elif args.command == "open":
             app_args = args.app_args[1:] if args.app_args[:1] == ["--"] else args.app_args
-            return open_terminator(args.palette, app_args, dry_run=args.dry_run)
+            return open_application(args.application, args.palette, app_args, dry_run=args.dry_run)
         elif args.command == "backup":
             print(backup_list())
         elif args.action == "list":

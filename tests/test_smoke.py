@@ -18,7 +18,7 @@ class FoundationSmoke(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory(prefix='aeronox home ')
         self.addCleanup(self.directory.cleanup)
         self.home = Path(self.directory.name)
-        self.env = dict(os.environ, HOME=str(self.home),
+        self.env = dict(os.environ, HTOPRC="", HOME=str(self.home),
                         XDG_CONFIG_HOME=str(self.home/'config'),
                         XDG_STATE_HOME=str(self.home/'state'),
                         XDG_DATA_HOME=str(self.home/'data'),

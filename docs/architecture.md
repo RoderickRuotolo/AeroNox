@@ -1,4 +1,4 @@
-# Architecture through stage 3
+# Architecture through stage 4
 
 - `models.py`, `catalog.py`: immutable validated palettes from bundled JSON.
 - `paths.py`: read-only resolution of XDG roots.
@@ -16,8 +16,14 @@
   section byte index. Only generated blocks are serialized with ConfigObj.
 - `adapters/terminator.py`: native executable detection, section-aware installation,
   verification, internal removal planning and argument-vector construction.
+- `adapters/generated.py`: native detection and common ownership/verification rules
+  for complete generated files, reused by htop and Vim.
+- `adapters/htop.py`: lossless source copying with one native monochrome override,
+  per-palette target paths and launch-only environment deltas.
+- `adapters/vim.py`: semantic highlight groups, nearest xterm-256 conversion,
+  XDG colorschemes and safely quoted runtimepath selection.
 - `commands.py`, `cli.py`: diagnostics, palettes, install orchestration, backup
-  listing and the Terminator launcher. No arbitrary-path write command is exposed.
+  listing and Terminator/htop/Vim launchers. No arbitrary-path write command is exposed.
 
 ConfigObj (5.0.8 or newer in the 5.x series) is a declared runtime dependency; its
 upstream package keeps its own licensing notices. Modules perform no filesystem
@@ -47,3 +53,23 @@ whole-file conflict checks. There is no automatic adoption of unregistered exist
 profiles, force-overwrite mode or generic section parser. Every future adapter must
 provide its own constrained policy before allowing independent personal edits.
 See [safety and recovery](safety-and-restore.md) and [application notes](apps.md).
+
+## Separate resources and orchestration
+
+htop and Vim never enroll personal dotfiles. Each has two generated resources
+under XDG data; whole-file hashes and modes guard installation, launch and removal.
+htop reads an optional source snapshot at planning time without changing it. The
+source is rechecked before returning the plan; later personal edits are picked up
+by a future explicit installation, provided managed copies remain intact.
+
+Launch argv and environment changes are separate from install transactions. The
+htop launcher passes only HTOPRC and XDG_STATE_HOME overrides to the child; dry-run
+prints only that delta. Vim prepends its XDG runtime directory to runtimepath via
+an escaped Vimscript string in a separate `-c` argument. Other user startup settings
+stay in effect. `original` mode delegates normally without generated resources.
+
+Installations currently commit one transaction per component. The next component
+plans against the newly committed manifest, preserving earlier ownership records.
+If a later component fails, the CLI reports earlier commits and backup IDs. There
+is no cross-component rollback or automatic adoption of a htop-rewritten copy.
+These limits are explicit pending full integration/reconciliation in later stages.

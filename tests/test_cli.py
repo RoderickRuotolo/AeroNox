@@ -83,7 +83,7 @@ def test_module_entrypoint(tmp_path):
 
 
 def test_pending_adapters_do_not_write(isolated_home, capsys):
-    assert main(["install", "--components", "htop,vim,vscode"]) == 0
+    assert main(["install", "--components", "vscode"]) == 0
     assert "not implemented" in capsys.readouterr().out
     assert list(isolated_home.iterdir()) == []
 

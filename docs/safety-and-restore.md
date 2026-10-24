@@ -1,8 +1,9 @@
-# Safety engine (roadmap stages 2–3)
+# Safety engine (roadmap stages 2–4)
 
-The transaction engine is used by the Terminator adapter. The CLI exposes
-`install`/`install --dry-run`, `backup list` and the Terminator launcher. Installation
-is the explicit operation that mutates the shared application config. See
+The transaction engine is used by the Terminator, htop and Vim adapters. The CLI exposes
+`install`/`install --dry-run`, `backup list` and three application launchers. Installation
+is the explicit operation that mutates the shared Terminator config or generated
+htop/Vim files. Original htoprc and Vim startup files are never rewritten. See
 [application notes](apps.md) for the supported native paths and profile behavior.
 
 ## Plans and ownership
@@ -117,3 +118,20 @@ Coverage includes creation/update/removal, snapshots, no-op installs, shared fil
 protected paths, symlinks, hardlinks, FIFO, permissions, ownership, malformed JSON,
 backup corruption, lock contention, concurrent edits and injected failures during
 writing and rollback. Real application configuration fixtures are not used.
+
+## Application runtime writes
+
+Transactions cover AeroNox installations/removals, not arbitrary side effects of
+an explicitly launched application. htop can rewrite its managed htoprc and create
+history files. The wrapper redirects its state history under AeroNox state and
+refuses unexpected symlinks in existing history paths. Such runtime data is not
+silently accepted into manifest ownership and is not automatically deleted.
+A rewritten copy causes a conflict on subsequent managed use/install/removal;
+keep it for review. Existing normal htop commands remain available outside wrappers.
+Vim launches keep personal startup settings and arguments in effect, so plugins
+and user-supplied commands retain their ordinary behavior. Headless tests use
+`-Nu NONE -i NONE -n` and temporary HOME/XDG to avoid dotfiles and swap/viminfo writes.
+
+A multi-component install uses independent transactions. A failure in a later
+component preserves earlier committed components and reports their outcomes and
+backup IDs. The failing component still follows its rollback/recovery contract.
