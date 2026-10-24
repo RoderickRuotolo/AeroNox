@@ -1,0 +1,163 @@
+// AeroNox generated reference: merge manually into a dedicated profile.
+// Never replace your entire settings.json or edit Default automatically.
+// Inspired colors only; no NVIS certification or medical claims.
+{
+  "workbench.colorCustomizations": {
+    "editor.background": "#000500",
+    "editor.foreground": "#66BB66",
+    "editorCursor.foreground": "#66CC77",
+    "editor.selectionBackground": "#123A1B",
+    "editor.lineHighlightBackground": "#031408",
+    "editorLineNumber.foreground": "#397A43",
+    "editorLineNumber.activeForeground": "#88DD88",
+    "editorError.foreground": "#88DD88",
+    "editorWarning.foreground": "#66BB66",
+    "activityBar.background": "#031408",
+    "activityBar.foreground": "#66BB66",
+    "sideBar.background": "#031408",
+    "sideBar.foreground": "#66BB66",
+    "statusBar.background": "#031408",
+    "statusBar.foreground": "#66BB66",
+    "titleBar.activeBackground": "#031408",
+    "titleBar.activeForeground": "#66BB66",
+    "tab.activeBackground": "#000500",
+    "tab.activeForeground": "#88DD88",
+    "tab.inactiveBackground": "#031408",
+    "tab.inactiveForeground": "#397A43",
+    "input.background": "#000500",
+    "input.foreground": "#66BB66",
+    "list.activeSelectionBackground": "#123A1B",
+    "list.activeSelectionForeground": "#66BB66",
+    "panel.background": "#000500",
+    "focusBorder": "#88DD88",
+    "terminal.background": "#000500",
+    "terminal.foreground": "#66BB66",
+    "terminalCursor.foreground": "#66CC77",
+    "terminal.selectionBackground": "#123A1B",
+    "terminal.ansiBlack": "#000500",
+    "terminal.ansiRed": "#1C4D29",
+    "terminal.ansiGreen": "#235C32",
+    "terminal.ansiYellow": "#356B3E",
+    "terminal.ansiBlue": "#28563A",
+    "terminal.ansiMagenta": "#3F6B45",
+    "terminal.ansiCyan": "#498253",
+    "terminal.ansiWhite": "#6FA879",
+    "terminal.ansiBrightBlack": "#193B20",
+    "terminal.ansiBrightRed": "#3D8950",
+    "terminal.ansiBrightGreen": "#51A366",
+    "terminal.ansiBrightYellow": "#66B775",
+    "terminal.ansiBrightBlue": "#4A9465",
+    "terminal.ansiBrightMagenta": "#79C589",
+    "terminal.ansiBrightCyan": "#8CD49B",
+    "terminal.ansiBrightWhite": "#ACDDB4"
+  },
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "comment",
+          "punctuation.definition.comment"
+        ],
+        "settings": {
+          "foreground": "#397A43",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": [
+          "string"
+        ],
+        "settings": {
+          "foreground": "#66BB66",
+          "fontStyle": ""
+        }
+      },
+      {
+        "scope": [
+          "constant",
+          "support.constant"
+        ],
+        "settings": {
+          "foreground": "#88DD88",
+          "fontStyle": ""
+        }
+      },
+      {
+        "scope": [
+          "keyword",
+          "storage"
+        ],
+        "settings": {
+          "foreground": "#88DD88",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": [
+          "entity.name.type",
+          "support.type"
+        ],
+        "settings": {
+          "foreground": "#88DD88",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": [
+          "entity.name.function",
+          "support.function"
+        ],
+        "settings": {
+          "foreground": "#88DD88",
+          "fontStyle": ""
+        }
+      },
+      {
+        "scope": [
+          "variable",
+          "meta.definition.variable"
+        ],
+        "settings": {
+          "foreground": "#66BB66",
+          "fontStyle": ""
+        }
+      },
+      {
+        "scope": [
+          "invalid"
+        ],
+        "settings": {
+          "foreground": "#88DD88",
+          "fontStyle": "bold underline"
+        }
+      }
+    ]
+  },
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true,
+    "rules": {
+      "comment": {
+        "foreground": "#397A43",
+        "italic": true
+      },
+      "string": "#66BB66",
+      "number": "#88DD88",
+      "keyword": {
+        "foreground": "#88DD88",
+        "bold": true
+      },
+      "type": {
+        "foreground": "#88DD88",
+        "bold": true
+      },
+      "function": "#88DD88",
+      "variable": "#66BB66",
+      "variable.readonly": {
+        "foreground": "#88DD88",
+        "italic": true
+      },
+      "parameter": "#66BB66",
+      "property": "#66BB66"
+    }
+  }
+}

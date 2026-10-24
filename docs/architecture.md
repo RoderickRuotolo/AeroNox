@@ -1,4 +1,4 @@
-# Architecture through stage 4
+# Architecture through stage 5
 
 - `models.py`, `catalog.py`: immutable validated palettes from bundled JSON.
 - `paths.py`: read-only resolution of XDG roots.
@@ -22,8 +22,14 @@
   per-palette target paths and launch-only environment deltas.
 - `adapters/vim.py`: semantic highlight groups, nearest xterm-256 conversion,
   XDG colorschemes and safely quoted runtimepath selection.
+- `adapters/vscode_theme.py`: deterministic workbench/TextMate/semantic/ANSI
+  reference settings; generated examples live in `assets/vscode` and ship in wheels.
+- `jsonc.py`: strict read-only decoding of comments/trailing commas, with redacted
+  parse errors and duplicate/non-finite value rejection.
+- `adapters/vscode.py`: edition detection, owned snippet generation and read-only
+  existing-profile checks. Profile settings/registry files are never mutation targets.
 - `commands.py`, `cli.py`: diagnostics, palettes, install orchestration, backup
-  listing and Terminator/htop/Vim launchers. No arbitrary-path write command is exposed.
+  listing and Terminator/htop/Vim/Code launchers plus assisted setup commands. No arbitrary-path write command is exposed.
 
 ConfigObj (5.0.8 or newer in the 5.x series) is a declared runtime dependency; its
 upstream package keeps its own licensing notices. Modules perform no filesystem
@@ -66,10 +72,27 @@ Launch argv and environment changes are separate from install transactions. The
 htop launcher passes only HTOPRC and XDG_STATE_HOME overrides to the child; dry-run
 prints only that delta. Vim prepends its XDG runtime directory to runtimepath via
 an escaped Vimscript string in a separate `-c` argument. Other user startup settings
-stay in effect. `original` mode delegates normally without generated resources.
+stay in effect. `original` mode delegates normally without generated resources,
+except implicit Code opening requests manual setup/explicit palette selection.
+Explicit original Code opening remains available.
 
 Installations currently commit one transaction per component. The next component
 plans against the newly committed manifest, preserving earlier ownership records.
 If a later component fails, the CLI reports earlier commits and backup IDs. There
 is no cross-component rollback or automatic adoption of a htop-rewritten copy.
 These limits are explicit pending full integration/reconciliation in later stages.
+
+## Assisted VS Code boundary
+
+VS Code is a generated-file adapter only for two reference snippets. Its resource
+verification checks those artifacts, not whether a profile is configured. Profile
+readiness is a separate read-only operation against native edition-specific state
+and independent dedicated settings. It requires the generated customization subset
+and exact TextMate rule suffix. It never reads Default settings or registers IDs.
+
+Native profile roots are pinned in launch argv. Known packaged/portable layouts
+remain manual, and selector flags that bypass checks are refused. Status hides
+local paths/IDs unless --paths is selected. The offline guide and assets are a
+separate package-data mapping, so they remain usable outside the checkout without
+an editor. Asset generation/checking is a development script; runtime never writes
+repository assets or fetches anything. See [VS Code notes](vscode.md).

@@ -45,7 +45,7 @@ def test_doctor_without_apps(monkeypatch, capsys, isolated_home):
     output = capsys.readouterr().out
     assert "terminator: not found" in output
     assert "advertised (not verified)" in output
-    assert "not implemented" in output
+    assert "assisted integration" in output
     assert str(isolated_home) not in output
 
 
@@ -82,9 +82,10 @@ def test_module_entrypoint(tmp_path):
     assert "aviation-red" in result.stdout
 
 
-def test_pending_adapters_do_not_write(isolated_home, capsys):
+def test_missing_vscode_does_not_write(isolated_home, capsys, monkeypatch):
+    monkeypatch.setattr("aeronox.adapters.vscode.shutil.which", lambda _: None)
     assert main(["install", "--components", "vscode"]) == 0
-    assert "not implemented" in capsys.readouterr().out
+    assert "skipped" in capsys.readouterr().out
     assert list(isolated_home.iterdir()) == []
 
 

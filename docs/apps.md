@@ -4,7 +4,7 @@
 
 The native Terminator executable must already be on PATH. AeroNox never installs
 it. Missing applications are skipped with an actionable message; VS Code
-remains pending in this release. Recognized Snap/Flatpak executable paths are
+uses assisted/manual setup in this release. Recognized Snap/Flatpak executable paths are
 skipped because their configuration locations cannot be assumed. Detection uses
 PATH without executing a version probe. Arbitrary launcher scripts and all
 sandboxed packaging variants cannot be reliably classified from PATH alone.
@@ -102,7 +102,7 @@ detection and mocked process launches. They verify parsing, exact preservation,
 backups, rollback, per-profile ownership, idempotence and argv handling. They do
 not open a real GUI or certify visual rendering across Terminator versions. Actual
 font/color rendering and interaction with an existing desktop session still need
-manual validation. VS Code integration remains the next stage.
+manual validation. VS Code uses the separate assisted workflow described below.
 
 ## htop (stage 4)
 
@@ -203,3 +203,16 @@ unchanged install does not duplicate resources or create more backups.
 The htop/Vim internal removal plans delete only intact owned resources; modified
 or unregistered files are preserved. Public uninstall/restore and active-theme
 commands remain reserved for stage 6. Explicit --palette is per launch only.
+
+## VS Code assisted (stage 5)
+
+Use `aeronox vscode guide` or the [packaged setup guide](../assets/vscode/GUIDE.md).
+`install --components vscode` writes only reference snippets; it does not create
+profiles, install themes/extensions or change Default. Manually create the two
+named profiles, merge settings and check `aeronox vscode status` before themed use.
+`aeronox open code --edition stable --palette aviation-red -- /path/to/project`
+then opens the verified existing profile in a new window. Missing profiles cause
+instructions rather than implicit creation through --profile. Snap/Flatpak/portable
+layouts remain manual. Detailed [read-only checks and limits](vscode.md) include
+edition roots, JSONC, overrides and concurrency. Desktop visual validation and
+running-window synchronization are outside these automated tests.

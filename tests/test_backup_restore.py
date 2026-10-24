@@ -395,7 +395,7 @@ class SafetyTests(unittest.TestCase):
             self.assertEqual(main(["install", "--dry-run"]), 0)
             self.assertEqual(main(["backup", "list"]), 0)
         self.assertEqual(self.tree(), before)
-        self.assertIn("adapter not implemented", output.getvalue())
+        self.assertIn("Dry-run only", output.getvalue())
         self.assertIn("No AeroNox backups", output.getvalue())
         backup_id = self.install()
         before = self.tree()

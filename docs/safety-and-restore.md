@@ -1,7 +1,7 @@
-# Safety engine (roadmap stages 2–4)
+# Safety engine (roadmap stages 2–5)
 
-The transaction engine is used by the Terminator, htop and Vim adapters. The CLI exposes
-`install`/`install --dry-run`, `backup list` and three application launchers. Installation
+The transaction engine is used by the Terminator, htop, Vim and assisted VS Code adapters. The CLI exposes
+`install`/`install --dry-run`, `backup list` and application launchers. Installation
 is the explicit operation that mutates the shared Terminator config or generated
 htop/Vim files. Original htoprc and Vim startup files are never rewritten. See
 [application notes](apps.md) for the supported native paths and profile behavior.
@@ -135,3 +135,14 @@ and user-supplied commands retain their ordinary behavior. Headless tests use
 A multi-component install uses independent transactions. A failure in a later
 component preserves earlier committed components and reports their outcomes and
 backup IDs. The failing component still follows its rollback/recovery contract.
+
+## Assisted VS Code
+
+VS Code installation writes only two generated snippet artifacts. Profile settings
+and registry files are read-only inputs to readiness checks and are never owned,
+backed up as mutation targets, rewritten or deleted. Default settings are not read.
+The JSONC reader rejects ambiguous input rather than repairing user files, and
+parse errors never include private settings content. Exact profile names and safe
+relative locations must already exist; unknown layouts remain manual. Checks are
+repeated before returning argv but cannot be atomic with VS Code's eventual CLI
+handling. Avoid deleting/editing profiles during launch. See [VS Code limits](vscode.md).

@@ -17,14 +17,16 @@ dev = ["pytest>=8", "ruff>=0.9", "build>=1"]
 aeronox = "aeronox.cli:main"
 
 [tool.setuptools]
-packages = ["aeronox", "aeronox.adapters", "aeronox.palettes"]
+packages = ["aeronox", "aeronox.adapters", "aeronox.palettes", "aeronox.vscode_assets"]
 
 [tool.setuptools.package-data]
 "aeronox.palettes" = ["*.json"]
+"aeronox.vscode_assets" = ["*.jsonc", "GUIDE.md"]
 
 [tool.setuptools.package-dir]
 "aeronox" = "src/aeronox"
 "aeronox.palettes" = "palettes"
+"aeronox.vscode_assets" = "assets/vscode"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

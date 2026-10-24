@@ -41,14 +41,14 @@ class ApplicationCommandsTests(unittest.TestCase):
 
     def test_combined_install_retains_all_resource_ownership_and_is_idempotent(self):
         output = self.capture(["install"])
-        self.assertIn("vscode: pending", output)
+        self.assertIn("vscode: snippets generated", output)
         self.assertTrue(TerminatorAdapter().verify().ok)
         self.assertTrue(HtopAdapter().verify().ok)
         self.assertTrue(VimAdapter().verify().ok)
         state = HtopAdapter().store.planner().manifest
-        self.assertEqual(len(state.resources), 5)
+        self.assertEqual(len(state.resources), 7)
         self.assertEqual({record.owner for record in state.resources.values()},
-                         {"terminator", "htop", "vim"})
+                         {"terminator", "htop", "vim", "vscode"})
         before = {p: p.read_bytes() for p in self.home.rglob("*") if p.is_file()}
         self.capture(["install"])
         after = {p: p.read_bytes() for p in self.home.rglob("*") if p.is_file()}

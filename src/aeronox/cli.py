@@ -5,8 +5,11 @@ import json
 import os
 import platform
 import shutil
+from pathlib import Path
 
 from aeronox import __version__
+from aeronox.adapters.vscode import EDITION_CHOICES, guide
+from aeronox.adapters.vscode_theme import snippet
 from aeronox.catalog import PaletteCatalog
 from aeronox.commands import (
     APPLICATIONS,
@@ -15,6 +18,7 @@ from aeronox.commands import (
     component_names,
     install_components,
     open_application,
+    vscode_status,
 )
 from aeronox.contrast import contrast_ratio
 from aeronox.models import PALETTE_IDS, PaletteError
@@ -28,13 +32,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--version", action="version", version=f"aeronox {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("doctor", help="Report availability without reading application configs")
+    commands.add_parser("doctor",
+                        help="Report availability and read-only VS Code profile readiness")
     install = commands.add_parser("install", help="Install dedicated profiles or preview a plan")
     install.add_argument("--dry-run", action="store_true", help="Plan without writing or launching")
     install.add_argument("--components", default=COMPONENTS, type=component_names,
                          help="Comma-separated: terminator,htop,vim,vscode")
     install.add_argument("--base-profile", default="default",
                          help="Existing Terminator profile to clone (default: default)")
+    install.add_argument("--vscode-edition", choices=EDITION_CHOICES, default="auto",
+                         help="Edition used to detect assisted VS Code setup")
     opener = commands.add_parser("open", help="Launch a supported application without a shell")
     applications = opener.add_subparsers(dest="application", required=True)
     for application in APPLICATIONS:
@@ -43,8 +50,22 @@ def main(argv: list[str] | None = None) -> int:
                            help="Override active mode for this launch only")
         child.add_argument("--dry-run", action="store_true",
                            help="Show launch plan without running")
+        if application == "code":
+            child.add_argument("--edition", choices=EDITION_CHOICES, default="auto")
+            child.add_argument("--user-data-dir", type=Path,
+                               help="Existing native data root inside HOME (read-only checks)")
         child.add_argument("app_args", nargs=argparse.REMAINDER,
                            help=f"Arguments to {application} after --")
+    vscode = commands.add_parser("vscode",
+                                 help="Offline guide, snippets and read-only profile status")
+    assisted = vscode.add_subparsers(dest="vscode_action", required=True)
+    assisted.add_parser("guide", help="Print manual dedicated-profile setup instructions")
+    template = assisted.add_parser("snippet", help="Print generated reference settings JSONC")
+    template.add_argument("palette_id", choices=PALETTE_IDS)
+    status = assisted.add_parser("status", help="Inspect editions and dedicated profile readiness")
+    status.add_argument("--edition", choices=EDITION_CHOICES, default="auto")
+    status.add_argument("--user-data-dir", type=Path)
+    status.add_argument("--paths", action="store_true", help="Include local data/snippet paths")
     backups = commands.add_parser("backup", help="Inspect local transaction backups")
     backups.add_subparsers(dest="backup_action", required=True).add_parser("list")
     palette = commands.add_parser("palette", help="Inspect validated bundled palettes")
@@ -71,13 +92,27 @@ def main(argv: list[str] | None = None) -> int:
             print("XDG AeroNox locations: resolved (paths hidden)")
             print("Palettes: valid")
             print("Terminator, htop and Vim adapters available; app versions not probed")
-            print("VS Code integration: not implemented; no configs inspected")
+            print("VS Code: assisted integration; only dedicated profiles are inspected")
+            try:
+                print(vscode_status())
+            except SafetyError:
+                print("VS Code paths cannot be verified safely; use manual setup")
         elif args.command == "install":
             print(install_components(args.components, dry_run=args.dry_run,
-                                     base_profile=args.base_profile))
+                                     base_profile=args.base_profile,
+                                     vscode_edition=args.vscode_edition))
         elif args.command == "open":
             app_args = args.app_args[1:] if args.app_args[:1] == ["--"] else args.app_args
-            return open_application(args.application, args.palette, app_args, dry_run=args.dry_run)
+            return open_application(args.application, args.palette, app_args, dry_run=args.dry_run,
+                                    edition=getattr(args, "edition", "auto"),
+                                    user_data_dir=getattr(args, "user_data_dir", None))
+        elif args.command == "vscode":
+            if args.vscode_action == "guide":
+                print(guide(), end="")
+            elif args.vscode_action == "snippet":
+                print(snippet(catalog.get(args.palette_id)).decode(), end="")
+            else:
+                print(vscode_status(args.edition, args.user_data_dir, show_paths=args.paths))
         elif args.command == "backup":
             print(backup_list())
         elif args.action == "list":

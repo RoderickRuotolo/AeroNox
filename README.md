@@ -3,10 +3,10 @@
 *Coordinated low-light themes for Linux developer tools.*
 
 AeroNox is an early-stage, offline Linux theme manager for Terminator, htop,
-Vim and Visual Studio Code. **Roadmap stages 1–4 are implemented.**
-The CLI inspects palettes and installs isolated resources for Terminator, htop and
-Vim with backups and conflict checks. VS Code integration and active-theme
-management are still pending.
+Vim and Visual Studio Code. **Roadmap stages 1–5 are implemented.**
+The CLI inspects palettes, installs isolated Terminator/htop/Vim resources and
+generates assisted VS Code snippets with backups and conflict checks. VS Code
+profile setup is manual; active-theme management remains pending.
 
 ## Requirements and installation
 
@@ -45,13 +45,20 @@ aeronox open terminator --palette nvis-green-a --dry-run
 aeronox open htop --palette aviation-red
 aeronox open htop --palette nvis-green-a --dry-run
 aeronox open vim --palette nvis-green-a -- README.md
+aeronox install --components vscode --dry-run
+aeronox vscode guide
+aeronox vscode snippet aviation-red
+aeronox vscode status --edition stable
+# Only after manually preparing the dedicated profile:
+aeronox open code --edition stable --palette aviation-red -- /path/to/project
 aeronox backup list
 python scripts/report_contrast.py
 ```
 
 `doctor` checks executable availability on PATH, platform and the COLORTERM hint.
-It does not execute applications, inspect private configs, determine app versions,
-verify True Color, or detect prepared VS Code profiles yet. Missing apps are reported
+It also performs read-only VS Code edition/profile checks. It does not execute
+applications, probe versions or verify True Color. It reads profile metadata and
+only dedicated VS Code settings; Default settings are never inspected. Missing apps are reported
 without failing the whole diagnostic. User-specific paths are omitted from output.
 Unknown commands and arguments fail with a nonzero exit code.
 
@@ -60,14 +67,19 @@ or launching applications. Real installation creates two dedicated profiles, lea
 the Terminator default and personal sections byte-identical, and snapshots the full
 original config before changes. htop uses separate per-palette htoprc copies, and
 Vim uses colorschemes under XDG data without editing `.vimrc`. Missing applications
-are skipped; only the VS Code adapter is pending. Recognized Snap/Flatpak paths
+are skipped. VS Code installation generates reference snippets only; the user
+must manually merge them into dedicated profiles. Recognized Snap/Flatpak paths
 require manual setup. Component transactions are independent: a later failure
-reports earlier committed components and backup IDs instead of hiding them. `backup list` reads private journals without creating state.
+reports earlier committed components and backup IDs instead of hiding them.
+`backup list` reads private journals without creating state.
 
 `open <application> --palette ...` verifies installed resources and launches with a
 list of arguments, without a shell. It affects that new instance only and does not
 persist an active theme. Arguments after `--` pass through individually. Without
-an override, the initial `original` mode starts the application normally. No aliases or
+an override, the initial `original` mode starts Terminator/htop/Vim normally. Code
+instead prints setup instructions to avoid accidentally creating/selecting an
+unprepared profile; explicit `--palette original` opts into ordinary Code launch.
+No aliases or
 shell configuration changes are made. See [application notes](docs/apps.md) for
 base-profile selection, cursor/version limits and existing-window behavior.
 
@@ -78,6 +90,22 @@ managed htoprc, later use/install/removal reports a conflict and preserves it;
 automatic reconciliation is not implemented yet. Vim includes RGB and approximate
 xterm-256 highlights, including bold/reverse/underline cues. True Color depends on
 the user's terminal and Vim settings; the wrapper does not force it on.
+
+## Assisted VS Code setup
+
+Read the [offline setup guide](assets/vscode/GUIDE.md) or run `aeronox vscode guide`.
+Create **AeroNox Aviation Red** and **AeroNox NVIS Green A** profiles manually,
+with independent settings, then merge the corresponding snippet objects. Preserve
+unrelated settings and never replace the entire settings.json. Only generated
+reference files are installed under AeroNox XDG data; no VS Code settings, registry
+or Default profile is modified. `--profile` alone does not import a theme.
+
+`vscode status` distinguishes snippets from prepared profiles. Native Stable,
+Insiders and VSCodium use separate roots; Snap/Flatpak/portable packages are
+reported as manual setup/launch. `open code` verifies existing named profiles
+before using --profile, and refuses missing, ambiguous or unsafe layouts. It does
+not promise automatic updates to already-open windows. See [VS Code limits and
+checks](docs/vscode.md) for custom data roots, JSONC and the verification race limit.
 
 ## Palette preview
 
@@ -114,9 +142,10 @@ hardlinks, special files, unsupported metadata and external XDG roots are refuse
 See [safety and recovery](docs/safety-and-restore.md) for limits and recovery steps,
 and [architecture](docs/architecture.md) for module responsibilities.
 
-`apply`, `current`, `restore`, public `uninstall` and the VS Code launcher remain
-future commands. The three adapters have tested internal removal plans: Terminator
-removes owned sections, while htop/Vim remove only intact generated files.
+`apply`, `current`, `restore` and public `uninstall` remain future commands.
+The adapters have tested internal removal plans: Terminator removes owned sections,
+while htop/Vim/VS Code remove only intact generated files. Manually configured VS
+Code profiles are never removed.
 The safety engine initially records mode `original`; there is no active-theme
 restore through the CLI yet. Manifest schema 1 is read for compatibility; the first
 actual mutation snapshots it and writes schema 2 with ownership records. An
@@ -159,7 +188,11 @@ When native executables are available, these render htop controls in a temporary
 PTY and load both Vim themes headlessly with and without True Color. Missing
 native binaries cause those particular smoke tests to skip. Real desktop visual
 validation and full MVP E2E scenarios remain pending; the full MVP acceptance
-criteria are not yet satisfied.
+criteria are not yet satisfied. VS Code/JSONC tests can run with
+`python -m unittest discover -s tests -p test_vscode.py -v` and
+`python -m unittest discover -s tests -p test_jsonc.py -v`.
+Generated reference snippets are checked with
+`python scripts/generate_vscode_assets.py --check`.
 
 ## Instruções rápidas (PT-BR)
 
@@ -172,8 +205,11 @@ reais nos testes. htop e Vim também estão disponíveis: instale com
 `aeronox install --components htop,vim --dry-run` e depois sem `--dry-run`.
 Abra com `aeronox open htop --palette aviation-red` ou
 `aeronox open vim --palette nvis-green-a -- README.md`. O htop usa monocromia e
-pode regravar a cópia, causando um conflito conservador. VS Code e restauração
-do tema continuam pendentes.
+pode regravar a cópia, causando um conflito conservador. Para VS Code, consulte
+`aeronox vscode guide`, crie os perfis dedicados e mescle os snippets manualmente.
+`aeronox vscode status` verifica a preparação sem alterar configurações; somente
+então use `aeronox open code --palette aviation-red`. O perfil Default nunca é
+reescrito. Aplicação persistente e restauração do tema continuam pendentes.
 
 ## License
 
