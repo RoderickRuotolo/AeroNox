@@ -63,7 +63,7 @@ class SafetyTests(unittest.TestCase):
         backup_id = self.install()
         self.assertEqual(self.first.read_bytes(), b"generated\n")
         manifest = json.loads(self.store.state.read_bytes())
-        self.assertEqual(manifest["schema_version"], 1)
+        self.assertEqual(manifest["schema_version"], 2)
         self.assertEqual(manifest["mode"], "original")
         record = manifest["resources"][str(self.first)]
         self.assertEqual(record["sha256"], digest(b"generated\n"))
@@ -341,7 +341,7 @@ class SafetyTests(unittest.TestCase):
     def test_corrupt_manifest_is_never_replaced(self):
         self.install()
         for data in (b"{", b"{}", b'{"schema_version": true}',
-                     b'{"schema_version": 2, "mode": "original", "resources": {}}'):
+                     b'{"schema_version": 99, "mode": "original", "resources": {}}'):
             self.store.state.write_bytes(data)
             with self.assertRaises(SafetyError):
                 self.store.planner()

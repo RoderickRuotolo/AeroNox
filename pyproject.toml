@@ -8,6 +8,7 @@ version = "0.1.0.dev0"
 description = "Coordinated low-light themes for Linux developer tools"
 readme = "README.md"
 requires-python = ">=3.11"
+dependencies = ["configobj>=5.0.8,<6"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.9", "build>=1"]
@@ -16,7 +17,7 @@ dev = ["pytest>=8", "ruff>=0.9", "build>=1"]
 aeronox = "aeronox.cli:main"
 
 [tool.setuptools]
-packages = ["aeronox", "aeronox.palettes"]
+packages = ["aeronox", "aeronox.adapters", "aeronox.palettes"]
 
 [tool.setuptools.package-data]
 "aeronox.palettes" = ["*.json"]

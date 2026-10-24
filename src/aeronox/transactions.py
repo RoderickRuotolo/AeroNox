@@ -3,13 +3,13 @@
 import fcntl
 import os
 import stat
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
 from aeronox.backups import BackupStore
 from aeronox.paths import XDGPaths
-from aeronox.planning import Plan, PlannedChange, Planner
+from aeronox.planning import Plan, PlannedChange, Planner, SectionReader, SharedValidator
 from aeronox.storage import ConflictError, FileSnapshot, SafeFiles, SafetyError
 
 
@@ -22,17 +22,24 @@ class TransactionError(SafetyError):
 
 
 class TransactionStore:
-    def __init__(self, home: Path, paths: XDGPaths, allowed: frozenset[Path]):
+    def __init__(
+        self, home: Path, paths: XDGPaths, allowed: frozenset[Path],
+        section_readers: Mapping[str, SectionReader] | None = None,
+        shared_validators: Mapping[str, SharedValidator] | None = None,
+    ):
         self.files = SafeFiles(home)
         self.paths = paths
         self.state = paths.state / "state.json"
         self.allowed = allowed
+        self.section_readers = dict(section_readers or {})
+        self.shared_validators = dict(shared_validators or {})
         for path in (self.state, paths.data / ".probe", paths.config / ".probe"):
             self.files.validate(path)
         self.backups = BackupStore(self.files, paths.state)
 
     def planner(self) -> Planner:
-        return Planner(self.files, self.state, self.allowed)
+        return Planner(self.files, self.state, self.allowed,
+                       self.section_readers, self.shared_validators)
 
     def _validate(self, plan: Plan) -> None:
         # Rebuild from authorized targets and current ownership; don't trust a
@@ -47,7 +54,8 @@ class TransactionStore:
                 planner.remove(item.path, owner=item.owner, reason=item.reason)
             elif item.action in {"create", "update"} and item.content is not None:
                 planner.write(item.path, item.content, owner=item.owner, reason=item.reason,
-                              shared=item.ownership == "shared", mode=item.mode)
+                              shared=item.ownership == "shared", mode=item.mode,
+                              sections=item.sections, release=item.release)
             else:
                 raise SafetyError("Invalid planned action")
         if planner.build() != plan:

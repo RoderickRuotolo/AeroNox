@@ -82,11 +82,9 @@ def test_module_entrypoint(tmp_path):
     assert "aviation-red" in result.stdout
 
 
-def test_install_without_adapters_fails_without_writes(isolated_home, capsys):
-    with pytest.raises(SystemExit) as result:
-        main(["install"])
-    assert result.value.code == 1
-    assert "not implemented" in capsys.readouterr().err
+def test_pending_adapters_do_not_write(isolated_home, capsys):
+    assert main(["install", "--components", "htop,vim,vscode"]) == 0
+    assert "not implemented" in capsys.readouterr().out
     assert list(isolated_home.iterdir()) == []
 
 

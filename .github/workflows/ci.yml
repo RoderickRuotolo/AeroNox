@@ -28,6 +28,7 @@ jobs:
           /tmp/aeronox-wheel/bin/pip install dist/*.whl
           cd /tmp
           /tmp/aeronox-wheel/bin/aeronox --help
+          /tmp/aeronox-wheel/bin/aeronox open terminator --help
           /tmp/aeronox-wheel/bin/aeronox doctor
           /tmp/aeronox-wheel/bin/aeronox palette show aviation-red
           /tmp/aeronox-wheel/bin/aeronox palette show nvis-green-a

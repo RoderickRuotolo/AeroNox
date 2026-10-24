@@ -1,8 +1,9 @@
-# Safety foundation (roadmap stage 2)
+# Safety engine (roadmap stages 2–3)
 
-The transaction engine is an internal API for subsequent adapters. This release
-exposes `install --dry-run` and `backup list`; there are no application adapters
-and no CLI command that mutates application configurations yet.
+The transaction engine is used by the Terminator adapter. The CLI exposes
+`install`/`install --dry-run`, `backup list` and the Terminator launcher. Installation
+is the explicit operation that mutates the shared application config. See
+[application notes](apps.md) for the supported native paths and profile behavior.
 
 ## Plans and ownership
 
@@ -16,14 +17,18 @@ Filesystem reads can still update access times according to filesystem policy.
 
 `state.json` is versioned JSON containing the active mode (initially `original`)
 and resources keyed by absolute path. Each record contains the owning adapter,
-SHA-256, permissions and `generated` or `shared` ownership. Unknown or corrupt
+SHA-256, permissions and `generated` or `shared` ownership. Schema 2 also stores
+per-section hashes; schema 1 remains readable and is backed up before migration on
+an actual mutation. Unknown or corrupt
 schemas and duplicate JSON fields are rejected instead of replaced.
 
-An existing unmanaged file conflicts by default. A future adapter may explicitly
-enroll a shared configuration only after producing a safe, section-preserving
-plan. That API is not exposed as a generic CLI overwrite option. The generic
-engine never deletes shared files; a later adapter must plan removal of only its
-own sections. Modified, missing or differently owned managed resources conflict.
+An existing unmanaged file conflicts by default. An adapter may explicitly
+enroll a shared configuration after producing a safe, section-preserving plan.
+The Terminator policy enforces byte preservation outside owned blocks and stores
+individual profile hashes; unrelated personal edits do not block reinstallation. That API is not exposed as a generic CLI overwrite option. The generic
+engine never deletes shared files. The internal Terminator removal plan removes
+only owned sections and releases their record; public uninstall orchestration is
+pending. Modified, missing or differently owned managed resources/sections conflict.
 Repeating an identical install plan is a no-op, including no additional backup.
 
 ## Filesystem boundary
