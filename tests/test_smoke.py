@@ -43,7 +43,7 @@ class FoundationSmoke(unittest.TestCase):
         self.assertEqual(data['colors']['foreground'], '#CC3333')
 
     def test_errors(self):
-        for args, status in [(('install',),2), (('apply','aviation-red'),2),
+        for args, status in [(('install',),1), (('apply','aviation-red'),2),
                              (('palette','show','../secret'),1), ((),2)]:
             with self.subTest(args=args):
                 self.assertEqual(self.run_cli(*args).returncode, status)

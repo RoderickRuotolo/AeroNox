@@ -31,7 +31,7 @@ def test_invalid_palette(capsys):
     assert "Unknown palette" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("args", [[], ["install"], ["apply", "aviation-red"]])
+@pytest.mark.parametrize("args", [[], ["apply", "aviation-red"]])
 def test_unimplemented_commands_fail_honestly(args):
     with pytest.raises(SystemExit) as result:
         main(args)
@@ -67,7 +67,7 @@ def test_commands_do_not_write_or_launch_apps(isolated_home, monkeypatch):
 
     monkeypatch.setattr(subprocess, "Popen", forbidden)
     for args in (["doctor"], ["palette", "list"], ["palette", "show", "aviation-red"],
-                 ["palette", "contrast"]):
+                 ["palette", "contrast"], ["install", "--dry-run"], ["backup", "list"]):
         assert main(args) == 0
     after = {p.relative_to(isolated_home): p.read_bytes()
              for p in isolated_home.rglob("*") if p.is_file()}
@@ -80,3 +80,18 @@ def test_module_entrypoint(tmp_path):
                             cwd=tmp_path, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
     assert "aviation-red" in result.stdout
+
+
+def test_install_without_adapters_fails_without_writes(isolated_home, capsys):
+    with pytest.raises(SystemExit) as result:
+        main(["install"])
+    assert result.value.code == 1
+    assert "not implemented" in capsys.readouterr().err
+    assert list(isolated_home.iterdir()) == []
+
+
+@pytest.mark.parametrize("components", ["", "unknown", "vim,vim", "vim, htop"])
+def test_invalid_components(components):
+    with pytest.raises(SystemExit) as result:
+        main(["install", "--dry-run", "--components", components])
+    assert result.value.code == 2

@@ -1,4 +1,4 @@
-"""Read-only foundation CLI. Integration commands belong to later stages."""
+"""Read-only CLI for palettes, diagnostics and the safety foundation."""
 
 import argparse
 import json
@@ -8,16 +8,30 @@ import shutil
 
 from aeronox import __version__
 from aeronox.catalog import PaletteCatalog
+from aeronox.commands import (
+    COMPONENTS,
+    backup_list,
+    component_names,
+    install_preview,
+    install_unavailable,
+)
 from aeronox.contrast import contrast_ratio
 from aeronox.models import PaletteError
 from aeronox.paths import XDGPaths
+from aeronox.storage import SafetyError
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="AeroNox low-light themes (foundation preview)")
+    parser = argparse.ArgumentParser(description="AeroNox low-light themes (safety foundation)")
     parser.add_argument("--version", action="version", version=f"aeronox {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="Report availability without reading application configs")
+    install = commands.add_parser("install", help="Preview pending integrations without writing")
+    install.add_argument("--dry-run", action="store_true", help="Plan without writing or launching")
+    install.add_argument("--components", default=COMPONENTS, type=component_names,
+                         help="Comma-separated: terminator,htop,vim,vscode")
+    backups = commands.add_parser("backup", help="Inspect local transaction backups")
+    backups.add_subparsers(dest="backup_action", required=True).add_parser("list")
     palette = commands.add_parser("palette", help="Inspect validated bundled palettes")
     actions = palette.add_subparsers(dest="action", required=True)
     actions.add_parser("list", help="List palettes")
@@ -42,6 +56,12 @@ def main(argv: list[str] | None = None) -> int:
             print("XDG AeroNox locations: resolved (paths hidden)")
             print("Palettes: valid")
             print("Integrations and VS Code profiles: not implemented; no configs inspected")
+        elif args.command == "install":
+            if not args.dry_run:
+                install_unavailable()
+            print(install_preview(args.components))
+        elif args.command == "backup":
+            print(backup_list())
         elif args.action == "list":
             for item in catalog.list():
                 print(f"{item.id}: {item.name}")
@@ -52,6 +72,6 @@ def main(argv: list[str] | None = None) -> int:
                 ratio = contrast_ratio(item.colors["foreground"], item.colors["background"])
                 print(f"{item.id}: foreground/background {ratio:.2f}:1 (sRGB)")
             print("Numeric report only; no NVIS certification or medical benefit implied.")
-    except (PaletteError, OSError) as exc:
+    except (PaletteError, SafetyError, OSError) as exc:
         parser.exit(1, f"aeronox: {exc}\n")
     return 0

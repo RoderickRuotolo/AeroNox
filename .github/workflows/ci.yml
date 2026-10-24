@@ -31,3 +31,6 @@ jobs:
           /tmp/aeronox-wheel/bin/aeronox doctor
           /tmp/aeronox-wheel/bin/aeronox palette show aviation-red
           /tmp/aeronox-wheel/bin/aeronox palette show nvis-green-a
+          /tmp/aeronox-wheel/bin/aeronox install --dry-run
+          /tmp/aeronox-wheel/bin/aeronox backup list
+          test ! -e "$XDG_STATE_HOME"
