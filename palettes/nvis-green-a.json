@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "nvis-green-a",
+  "name": "NVIS Green A (inspired)",
+  "description": "Low-light green palette inspired by NVIS lighting; not certified",
+  "colors": {
+    "background": "#000500",
+    "background_alt": "#031408",
+    "foreground": "#66BB66",
+    "foreground_muted": "#397A43",
+    "accent": "#88DD88",
+    "cursor": "#66CC77",
+    "selection": "#123A1B"
+  },
+  "ansi16": [
+    "#000500",
+    "#1C4D29",
+    "#235C32",
+    "#356B3E",
+    "#28563A",
+    "#3F6B45",
+    "#498253",
+    "#6FA879",
+    "#193B20",
+    "#3D8950",
+    "#51A366",
+    "#66B775",
+    "#4A9465",
+    "#79C589",
+    "#8CD49B",
+    "#ACDDB4"
+  ]
+}

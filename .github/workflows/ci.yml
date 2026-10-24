@@ -1,0 +1,33 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install '.[dev]'
+      - name: Lint, test and verify packaged resources in temporary HOME
+        shell: bash
+        run: |
+          export HOME="$(mktemp -d)"
+          export XDG_CONFIG_HOME="$HOME/config"
+          export XDG_STATE_HOME="$HOME/state"
+          export XDG_DATA_HOME="$HOME/data"
+          ruff check .
+          pytest
+          python -m build
+          python -m venv /tmp/aeronox-wheel
+          /tmp/aeronox-wheel/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/aeronox-wheel/bin/aeronox --help
+          /tmp/aeronox-wheel/bin/aeronox doctor
+          /tmp/aeronox-wheel/bin/aeronox palette show aviation-red
+          /tmp/aeronox-wheel/bin/aeronox palette show nvis-green-a

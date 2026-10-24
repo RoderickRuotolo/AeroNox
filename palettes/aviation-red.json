@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "aviation-red",
+  "name": "Aviation Red",
+  "description": "Low-light red monochromatic palette",
+  "colors": {
+    "background": "#050000",
+    "background_alt": "#140303",
+    "foreground": "#CC3333",
+    "foreground_muted": "#8F2424",
+    "accent": "#FF4545",
+    "cursor": "#DD3333",
+    "selection": "#421010"
+  },
+  "ansi16": [
+    "#050000",
+    "#641818",
+    "#7B2424",
+    "#99302B",
+    "#592121",
+    "#8B3434",
+    "#AA4840",
+    "#C45A52",
+    "#4A1717",
+    "#D43B3B",
+    "#B5473B",
+    "#CC5B45",
+    "#A95151",
+    "#DA6262",
+    "#E67769",
+    "#F09989"
+  ]
+}
