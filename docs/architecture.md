@@ -1,4 +1,4 @@
-# Architecture through stage 5
+# Architecture through stage 6
 
 - `models.py`, `catalog.py`: immutable validated palettes from bundled JSON.
 - `paths.py`: read-only resolution of XDG roots.
@@ -28,13 +28,15 @@
   parse errors and duplicate/non-finite value rejection.
 - `adapters/vscode.py`: edition detection, owned snippet generation and read-only
   existing-profile checks. Profile settings/registry files are never mutation targets.
+- `lifecycle.py`: state-only apply/current/restore plus an atomic combined uninstall.
+  It replays adapter removal plans against one manifest with an exact target whitelist.
 - `commands.py`, `cli.py`: diagnostics, palettes, install orchestration, backup
   listing and Terminator/htop/Vim/Code launchers plus assisted setup commands. No arbitrary-path write command is exposed.
 
 ConfigObj (5.0.8 or newer in the 5.x series) is a declared runtime dependency; its
 upstream package keeps its own licensing notices. Modules perform no filesystem
 mutations on import or object construction. Planning reads files but never creates
-state; only nonempty, non-dry-run transaction execution mutates files. Launching
+state; only a non-dry-run transaction with resource or mode changes mutates files. Launching
 an application is a separate explicit CLI operation.
 
 ## Shared files
@@ -78,9 +80,9 @@ Explicit original Code opening remains available.
 
 Installations currently commit one transaction per component. The next component
 plans against the newly committed manifest, preserving earlier ownership records.
-If a later component fails, the CLI reports earlier commits and backup IDs. There
-is no cross-component rollback or automatic adoption of a htop-rewritten copy.
-These limits are explicit pending full integration/reconciliation in later stages.
+If a later component fails, the CLI reports earlier commits and backup IDs. Install failure recovery remains per component; no htop rewrite is silently
+adopted. Uninstall now combines every removal plus the mode reset into one
+transaction. Conflicts and unknown manifest destinations abort all removals.
 
 ## Assisted VS Code boundary
 
@@ -96,3 +98,18 @@ local paths/IDs unless --paths is selected. The offline guide and assets are a
 separate package-data mapping, so they remain usable outside the checkout without
 an editor. Asset generation/checking is a development script; runtime never writes
 repository assets or fetches anything. See [VS Code notes](vscode.md).
+
+## Mode lifecycle
+
+Plan.mode_change records the requested state-only transition without pretending
+state.json is an adapter resource. Planner validates modes and preserves ownership.
+Transaction revalidation rebuilds both resource changes and the mode intention;
+forged/inconsistent mode plans are rejected. State is committed last and snapshotted
+for mode-only transactions too. current and repeated original/no-op operations do
+not create directories. Existing windows are not watched or controlled.
+
+Atomic uninstall registers the same Terminator section policy as installation,
+replays every adapter's expected-source plan, rejects remaining unsupported records
+and requests original mode. No executable detection is needed to remove intact
+resources after an app has been removed. Backups, runtime histories and manual
+Code profile settings are retained. See acceptance.md for verification scope.

@@ -1,4 +1,4 @@
-# Safety engine (roadmap stages 2–5)
+# Safety engine (roadmap stages 2–6)
 
 The transaction engine is used by the Terminator, htop, Vim and assisted VS Code adapters. The CLI exposes
 `install`/`install --dry-run`, `backup list` and application launchers. Installation
@@ -28,8 +28,8 @@ enroll a shared configuration after producing a safe, section-preserving plan.
 The Terminator policy enforces byte preservation outside owned blocks and stores
 individual profile hashes; unrelated personal edits do not block reinstallation. That API is not exposed as a generic CLI overwrite option. The generic
 engine never deletes shared files. The internal Terminator removal plan removes
-only owned sections and releases their record; public uninstall orchestration is
-pending. Modified, missing or differently owned managed resources/sections conflict.
+only owned sections and releases their record; public uninstall combines this
+with intact generated-file removals and the mode reset in one transaction. Modified, missing or differently owned managed resources/sections conflict.
 Repeating an identical install plan is a no-op, including no additional backup.
 
 ## Filesystem boundary
@@ -105,9 +105,10 @@ To investigate a failed transaction:
    Never bulk-copy snapshots over live configurations. A creation entry has no
    original bytes and cannot justify deleting a subsequently edited file.
 
-There is intentionally no `backup restore` command yet. The future `restore`
-command returns active mode to `original`; it will not bulk-overwrite personal
-configs. The active-theme commands and uninstall orchestration belong to stage 6.
+There is intentionally no `backup restore` command. `restore` returns active mode
+to `original` through a state-only transaction; it never bulk-overwrites personal
+configs. `apply` follows the same snapshot/revalidation rules for active mode.
+Corrupt or insecure state is refused rather than silently replaced.
 
 ## Validation
 
@@ -146,3 +147,18 @@ parse errors never include private settings content. Exact profile names and saf
 relative locations must already exist; unknown layouts remain manual. Checks are
 repeated before returning argv but cannot be atomic with VS Code's eventual CLI
 handling. Avoid deleting/editing profiles during launch. See [VS Code limits](vscode.md).
+
+## Atomic removal and mode changes
+
+A mode-only plan still snapshots and commits state.json, with no app-file changes.
+Repeated modes, original restore with absent state and empty uninstall are no-ops.
+Mode changes preserve ownership records even if a generated file has changed;
+that lets restore stop themed launches without deleting the divergent resource.
+
+Uninstall builds all adapter plans without detecting or executing applications,
+revalidates their source fingerprints against one manifest and removes nothing
+when any component conflicts or unsupported records remain. A successful plan
+resets mode and removes/releases all known resources in a single transaction. A
+failure rolls back completed changes or retains a precise private recovery journal.
+No force-overwrite, automatic ownership adoption or deletion of manual Code profiles
+is added. Version probes in doctor are explicit, bounded and unrelated to dry-run.

@@ -369,7 +369,8 @@ class VSCodeTests(unittest.TestCase):
             with self.subTest(edition=edition):
                 command = "code" if edition == "stable" else "com.visualstudio.code"
                 with patch("aeronox.adapters.vscode.shutil.which",
-                           side_effect=lambda name: executable if name == command else None):
+                           side_effect=lambda name, command=command, executable=executable:
+                           executable if name == command else None):
                     adapter = VSCodeAdapter(edition=edition)
                     self.assertTrue(adapter.detect().available)
                     self.assertNotEqual(adapter.selected().kind, "native")
@@ -439,8 +440,8 @@ class VSCodeTests(unittest.TestCase):
         for edition, command in (("insiders", "code-insiders"), ("codium", "codium")):
             with self.subTest(edition=edition):
                 with patch("aeronox.adapters.vscode.shutil.which",
-                           side_effect=lambda name: f"/synthetic/{command}" if name == command
-                           else None):
+                           side_effect=lambda name, command=command:
+                           f"/synthetic/{command}" if name == command else None):
                     adapter = VSCodeAdapter(edition=edition)
                     self.profile("nvis-green-a", adapter=adapter)
                     argv = adapter.open_command("nvis-green-a", ["project with spaces"])

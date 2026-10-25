@@ -31,8 +31,8 @@ def test_invalid_palette(capsys):
     assert "Unknown palette" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("args", [[], ["apply", "aviation-red"]])
-def test_unimplemented_commands_fail_honestly(args):
+@pytest.mark.parametrize("args", [[], ["apply", "unknown"]])
+def test_missing_or_invalid_commands_fail(args):
     with pytest.raises(SystemExit) as result:
         main(args)
     assert result.value.code == 2

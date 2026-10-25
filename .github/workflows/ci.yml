@@ -43,3 +43,12 @@ jobs:
           /tmp/aeronox-wheel/bin/aeronox install --dry-run
           /tmp/aeronox-wheel/bin/aeronox backup list
           test ! -e "$XDG_STATE_HOME"
+          /tmp/aeronox-wheel/bin/aeronox apply aviation-red --dry-run
+          test ! -e "$XDG_STATE_HOME"
+          /tmp/aeronox-wheel/bin/aeronox current
+          /tmp/aeronox-wheel/bin/aeronox apply aviation-red
+          /tmp/aeronox-wheel/bin/aeronox apply nvis-green-a
+          /tmp/aeronox-wheel/bin/aeronox restore --dry-run
+          /tmp/aeronox-wheel/bin/aeronox restore
+          /tmp/aeronox-wheel/bin/aeronox uninstall --dry-run
+          /tmp/aeronox-wheel/bin/aeronox uninstall

@@ -95,7 +95,8 @@ class BackupStore:
                       or not isinstance(before["sha256"], str)
                       or re.fullmatch(r"[0-9a-f]{64}", before["sha256"]) is None
                       or any(type(before[key]) is not int or before[key] < 0
-                             for key in ("size", "mode", "uid", "gid", "mtime_ns"))):
+                             for key in ("size", "mode", "uid", "gid"))
+                      or before["mode"] > 0o777 or type(before["mtime_ns"]) is not int):
                     raise ValueError
             return journal
         except (ValueError, TypeError, KeyError) as exc:

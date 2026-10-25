@@ -72,7 +72,7 @@ Installation changes no active palette and does not reload or recolor open
 windows. Direct `terminator -p 'AeroNox Aviation Red'` also selects the profile;
 an already-running process may need a restart to see newly installed profiles.
 No aliases, PATH modifications, shell startup edits, desktop entries or background
-watchers are created. `apply` and active-mode management are reserved for stage 6.
+watchers are created. `apply` persists the palette for new wrapper launches; `restore` returns mode to original.
 
 ## Ownership and removal
 
@@ -92,8 +92,8 @@ and rollback uses the conservative rules in [safety and recovery](safety-and-res
 The adapter has an internal `plan_uninstall` API that removes only intact owned
 blocks and releases their manifest record, preserving even a newly created config
 file. It never deletes `default` or deletes the shared file wholesale. This API is
-tested; the public `uninstall` command remains reserved for stage 6. Backups are
-retained. No automatic restore command is available yet.
+tested and used by public `uninstall` in a combined transaction. Backups are
+retained. `restore` changes only active mode; it never bulk-restores config backups.
 
 ## Validation limits
 
@@ -201,8 +201,9 @@ it is not a single atomic transaction across every application. Re-running an
 unchanged install does not duplicate resources or create more backups.
 
 The htop/Vim internal removal plans delete only intact owned resources; modified
-or unregistered files are preserved. Public uninstall/restore and active-theme
-commands remain reserved for stage 6. Explicit --palette is per launch only.
+or unregistered files are preserved. Public `uninstall` aborts the complete removal
+if any resource conflicts; `restore` can independently return active mode to original.
+Explicit --palette remains per launch only, while `apply` changes the persisted mode.
 
 ## VS Code assisted (stage 5)
 
@@ -216,3 +217,18 @@ instructions rather than implicit creation through --profile. Snap/Flatpak/porta
 layouts remain manual. Detailed [read-only checks and limits](vscode.md) include
 edition roots, JSONC, overrides and concurrency. Desktop visual validation and
 running-window synchronization are outside these automated tests.
+
+## Shared mode lifecycle (stage 6)
+
+`aeronox apply aviation-red` or `apply nvis-green-a` changes only the mode used by
+later implicit wrapper launches. It does not edit colors, start apps or recolor
+open windows. `current` prints the mode, and missing state means original.
+`restore` returns to original without removing profiles/resources or touching
+personal configs. All mutations accept --dry-run and no-ops do not create backups.
+
+`uninstall` removes only intact known resources and resets mode in one transaction;
+any conflict aborts the entire removal. It also works when app executables are
+absent. Unknown/outdated manifest destinations are preserved for review. Backups,
+history and manually configured VS Code profiles remain. Original Code opening is
+still explicit via --palette original/native code, preserving the assisted setup
+boundary when implicit opening has no active palette.

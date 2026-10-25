@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -123,4 +124,39 @@ def vscode_status(
     if show_paths:
         lines.append(f"Selected data root: {selected.data_root}")
         lines.extend(f"Snippet: {path}" for path in adapter.targets.values())
+    return "\n".join(lines)
+
+
+def diagnostic_paths() -> str:
+    paths = XDGPaths.resolve()
+    lines = [f"AeroNox config: {paths.config}", f"AeroNox state: {paths.state}",
+             f"AeroNox data: {paths.data}"]
+    for name in ("terminator", "htop", "vim"):
+        lines.append(f"{name} default config/resource: {adapter_for(name).config_path}")
+    selected = VSCodeAdapter().selected()
+    if selected.kind == "native":
+        lines.append(f"VS Code selected native data root: {selected.data_root}")
+    else:
+        lines.append("VS Code packaged/portable data root: manual setup required")
+    return "\n".join(lines)
+
+
+def versions_report() -> str:
+    lines = []
+    for application in APPLICATIONS:
+        try:
+            adapter = adapter_for(application)
+            if isinstance(adapter, VSCodeAdapter) and adapter.selected().kind != "native":
+                raise SafetyError("Manual edition")
+            detection = adapter.detect()
+            if not detection.supported or detection.executable is None:
+                raise SafetyError("Unavailable edition")
+            result = subprocess.run([detection.executable, "--version"], check=False,
+                                    capture_output=True, text=True, errors="replace", timeout=3)
+            first = result.stdout.splitlines()[0][:200] if result.stdout else ""
+            match = re.search(r"\b\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.]+)?\b", first)
+            version = match.group(0) if result.returncode == 0 and match else "unavailable"
+        except (OSError, SafetyError, subprocess.TimeoutExpired):
+            version = "unavailable (not probed or probe failed)"
+        lines.append(f"{application} version: {version}")
     return "\n".join(lines)

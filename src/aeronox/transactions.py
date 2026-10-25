@@ -47,6 +47,8 @@ class TransactionStore:
         planner = self.planner()
         if planner.before != plan.manifest_before:
             raise ConflictError("State manifest changed since planning")
+        if plan.mode_change is not None:
+            planner.set_mode(plan.mode_change)
         for item in plan.changes:
             if self.files.read(item.path) != item.expected:
                 raise ConflictError(f"File changed since planning: {item.path}")
@@ -83,7 +85,7 @@ class TransactionStore:
 
     def execute(self, plan: Plan, *, dry_run: bool = False) -> str | None:
         self._validate(plan)
-        if dry_run or not plan.changes:
+        if dry_run or (not plan.changes and plan.mode_change is None):
             return None
         if os.geteuid() == 0:
             raise SafetyError("AeroNox refuses mutations as root")

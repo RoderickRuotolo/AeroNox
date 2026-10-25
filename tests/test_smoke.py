@@ -44,7 +44,7 @@ class FoundationSmoke(unittest.TestCase):
 
     def test_errors(self):
         for args, status in [(('install', '--components', 'unknown'), 2),
-                             (('apply', 'aviation-red'), 2),
+                             (('apply', 'unknown'), 2),
                              (('palette','show','../secret'),1), ((),2)]:
             with self.subTest(args=args):
                 self.assertEqual(self.run_cli(*args).returncode, status)

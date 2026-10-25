@@ -117,9 +117,13 @@ class Plan:
     changes: tuple[PlannedChange, ...]
     manifest_before: FileSnapshot | None
     manifest: Manifest
+    mode_change: str | None = None
 
     def describe(self) -> str:
-        return "\n".join(item.describe() for item in self.changes) or "No file changes planned."
+        lines = [item.describe() for item in self.changes]
+        if self.mode_change is not None:
+            lines.append(f"Set active mode: {self.mode_change} (new launches only)")
+        return "\n".join(lines) or "No file changes planned."
 
 
 class Planner:
@@ -144,7 +148,13 @@ class Planner:
         if self.before is not None:
             files.private_directory(state.parent)
         self.manifest = Manifest.load(self.before, files)
+        self.mode = self.manifest.mode
         self.changes: list[PlannedChange] = []
+
+    def set_mode(self, mode: str) -> None:
+        if mode not in ("original", *PALETTE_IDS):
+            raise SafetyError("Unknown active mode")
+        self.mode = mode
 
     def _check_target(self, path: Path) -> None:
         self.files.validate(path)
@@ -239,5 +249,6 @@ class Planner:
                 resources[str(item.path)] = Resource(
                     digest(item.content), item.mode, item.owner, item.ownership, item.sections,
                 )
+        mode_change = self.mode if self.mode != self.manifest.mode else None
         return Plan(tuple(self.changes), self.before,
-                    Manifest(self.manifest.mode, MappingProxyType(resources)))
+                    Manifest(self.mode, MappingProxyType(resources)), mode_change)

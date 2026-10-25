@@ -16,11 +16,14 @@ from aeronox.commands import (
     COMPONENTS,
     backup_list,
     component_names,
+    diagnostic_paths,
     install_components,
     open_application,
+    versions_report,
     vscode_status,
 )
 from aeronox.contrast import contrast_ratio
+from aeronox.lifecycle import change_mode, current_mode, uninstall
 from aeronox.models import PALETTE_IDS, PaletteError
 from aeronox.paths import XDGPaths
 from aeronox.storage import SafetyError
@@ -32,8 +35,19 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--version", action="version", version=f"aeronox {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("doctor",
-                        help="Report availability and read-only VS Code profile readiness")
+    doctor = commands.add_parser("doctor",
+                                 help="Report availability and read-only VS Code profile readiness")
+    doctor.add_argument("--paths", action="store_true", help="Include explicit local config paths")
+    doctor.add_argument("--versions", action="store_true",
+                        help="Run optional bounded native --version probes")
+    apply = commands.add_parser("apply", help="Persist the mode used by new wrapper launches")
+    apply.add_argument("palette_id", choices=PALETTE_IDS)
+    apply.add_argument("--dry-run", action="store_true")
+    commands.add_parser("current", help="Print active mode; absent state means original")
+    restore = commands.add_parser("restore", help="Return mode to original without rewriting apps")
+    restore.add_argument("--dry-run", action="store_true")
+    remove = commands.add_parser("uninstall", help="Atomically remove only intact owned resources")
+    remove.add_argument("--dry-run", action="store_true")
     install = commands.add_parser("install", help="Install dedicated profiles or preview a plan")
     install.add_argument("--dry-run", action="store_true", help="Plan without writing or launching")
     install.add_argument("--components", default=COMPONENTS, type=component_names,
@@ -97,6 +111,18 @@ def main(argv: list[str] | None = None) -> int:
                 print(vscode_status())
             except SafetyError:
                 print("VS Code paths cannot be verified safely; use manual setup")
+            if args.paths:
+                print(diagnostic_paths())
+            if args.versions:
+                print(versions_report())
+        elif args.command == "current":
+            print(current_mode())
+        elif args.command == "apply":
+            print(change_mode(args.palette_id, dry_run=args.dry_run))
+        elif args.command == "restore":
+            print(change_mode("original", dry_run=args.dry_run))
+        elif args.command == "uninstall":
+            print(uninstall(dry_run=args.dry_run))
         elif args.command == "install":
             print(install_components(args.components, dry_run=args.dry_run,
                                      base_profile=args.base_profile,

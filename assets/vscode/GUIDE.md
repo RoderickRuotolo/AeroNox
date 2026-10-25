@@ -66,3 +66,8 @@ inspired by aviation lighting, not NVIS certified, and claim no medical benefit.
 References: [VS Code profiles](https://code.visualstudio.com/docs/configure/profiles)
 and [theme customizations](https://code.visualstudio.com/docs/configure/themes).
 These links are optional documentation; AeroNox performs no runtime network requests.
+
+Mode lifecycle: `apply <palette>` selects the default for new wrapper launches;
+`restore` changes it back to original without editing these profiles. `uninstall`
+removes only intact AeroNox-owned snippets/resources and keeps the manually merged
+profile settings. Explicit --palette still overrides mode for one launch only.
